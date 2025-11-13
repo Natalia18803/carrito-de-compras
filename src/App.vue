@@ -1,34 +1,44 @@
 <template>
-    <div class="q-pa-md q-gutter-y-sm">
-        <div class="bg-orange text-white">
-            <q-toolbar>
-                <q-btn flat round dense icon="menu" class="q-mr-sm" />
-                <q-space />
-                <q-btn flat round dense icon="search" class="q-mr-xs" />
-                <q-btn flat round dense icon="group_add" />
-            </q-toolbar>
-            <q-toolbar inset>
-            </q-toolbar>
-        </div>
-
-        <div class="bg-cyan text-white">
-            <q-toolbar>
-                <q-btn flat round dense icon="assignment_ind" />
-
-                <q-space />
-
-                <q-btn flat round dense icon="sim_card" class="q-mr-xs" />
-                <q-btn flat round dense icon="gamepad" />
-            </q-toolbar>
-
-            <q-toolbar inset>
-                <q-breadcrumbs active-color="white" style="font-size: 16px">
-
-                    <q-breadcrumbs-el label="Toolbar" />
-                </q-breadcrumbs>
-            </q-toolbar>
-        </div>
+  <div>
+    <div class="q-pa-md">
+      <h4>Productos Disponibles</h4>
+      <div class="row q-gutter-md">
+        <q-card v-for="producto in productosDisponibles" :key="producto.id" class="col-12 col-sm-6 col-md-4">
+          <q-card-section>
+            <q-img :src="producto.imagen" style="height: 175px; width: 175px; object-fit: cover;" />
+            <div class="text-h6">{{ producto.nombre }}</div>
+            <div class="text-subtitle2">${{ producto.precio }}</div>
+          </q-card-section>
+          <q-card-actions>
+            <q-btn flat color="primary" @click="agregarAlCarrito(producto)"> + Agregar al carrito</q-btn>
+          </q-card-actions>
+        </q-card>
+      </div>
     </div>
+
+    <div class="q-pa-md">
+      <h4>Carrito de Compras</h4>
+      <q-list bordered>
+        <q-item v-for="item in carrito" :key="item.id">
+          <q-item-section>
+            <q-item-label>{{ item.nombre }}</q-item-label>
+            <q-item-label caption>${{ item.precio }} x {{ item.cantidad }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat round icon="remove" @click="disminuirCantidad(item.id)" />
+            <span class="q-px-sm">{{ item.cantidad }}</span>
+            <q-btn flat round icon="add" @click="aumentarCantidad(item.id)" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <div class="q-mt-md">
+        <p>Total Items: {{ totalItems }}</p>
+        <p>Subtotal: ${{ subtotal }}</p>
+        <p>Impuesto (16%): ${{ impuesto }}</p>
+        <p>Total Final: ${{ totalFinal }}</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -38,10 +48,10 @@ const $q = useQuasar()
 
 //array de productos//
 const productosDisponibles = ref([
-    { id: 1, nombre: 'Producto 1', precio: 100, imagen: '' },
-    { id: 2, nombre: 'Producto 2', precio: 200, imagen: '' },
-    { id: 3, nombre: 'Producto 3', precio: 300, imagen: '' },
-    { id: 4, nombre: 'Producto 4', precio: 400, imagen: '' },
+    { id: 1, nombre: 'Licuadora', precio: 85.5, imagen: 'https://admin.pallomaro.com/backend/admin/backend/web/archivosDelCliente/items/images/20230929230938-BEBIDAS-LICUADORAS-LICUADORA-VELOCIDAD-VARIABLE-2L-21620230929230938128.png'},
+    { id: 2, nombre: 'Microondas', precio: 210, imagen: 'https://images.samsung.com/is/image/samsung/p6pim/co/ms23k3513ak-co/gallery/co-mw3500k-solo-mwo-with-quick-defrost-23l-ms23k3513ak-co-thumb-542064567?$UX_EXT1_PNG$' },
+    { id: 3, nombre: 'Batidora', precio: 308, imagen: 'https://pepeganga.vtexassets.com/arquivos/ids/1050301-800-auto?v=638351633673170000&width=800&height=auto&aspect=true' },
+    { id: 4, nombre: 'Horno Giratorio', precio: 415.2, imagen: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS9CQ-mhdDPgs9Tw21a6Ma5vdXzWIIKwIwAg&s' },
 ])
 
 
@@ -58,30 +68,177 @@ if (savedCarrito){
     carrito.value = JSON.parse(savedCarrito)
 }
 
-
-function  agregarAlCarrito(producto) {
+//funciones
+function agregarAlCarrito(producto) {
     const itemExistente = carrito.value.find(item => item.id === producto.id)
     if (itemExistente) {
         itemExistente.cantidad++
-    } else {}
+    } else {
+        carrito.value.push({ ...producto, cantidad: 1 })
+    }}
 
-}
+function aumentarCantidad(id) {
+    const item = carrito.value.find(item => item.id === id)
+    if (item) {
+        item.cantidad++
+    }}
 
-
+function disminuirCantidad(id) {
+    const itemIndex = carrito.value.findIndex(item => item.id === id)
+    if (itemIndex !== -1) {
+        if (carrito.value[itemIndex].cantidad > 1) {
+            carrito.value[itemIndex].cantidad--
+        } else {
+            carrito.value.splice(itemIndex, 1)
+        }}}
 
 //watchers//
 watch(carrito, () => {
     localStorage.setItem('carrito', JSON.stringify(carrito.value))
-    //notificacion de quasar//
+    $q.notify({
+      message: 'Carrito guardado automáticamente',
+      color: 'positive',
+      icon: 'shopping_cart'
+    })
 }, {deep: true})
 
 watch(totalFinal, (newVal) => {
   if (newVal > 1000) {
+    console.warn(`Total del carrito: ($${newVal.toFixed(2)}) superaste los $1000`);
     $q.notify({
       message: 'Compra grande detectada: Tu carrito supera los $1000',
       type: 'warning'
     })
   }
 })
-
 </script>
+
+<style scoped>
+/* Fondo degradado para toda la página */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Contenedor principal centrado */
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+}
+
+/* Títulos con mejor estilo */
+h4 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Nombres y precios de productos en color oscuro para visibilidad */
+.text-h6 {
+  color: #333 !important;
+  font-weight: 600;
+}
+
+.text-subtitle2 {
+  color: #666 !important;
+}
+
+/* Tarjetas de productos con espaciado y sombras */
+.q-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.q-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Imágenes de productos con borde redondeado */
+.q-img {
+  border-radius: 8px;
+}
+
+/* Botones de agregar al carrito con colores personalizados */
+.q-btn[color="primary"] {
+  background: linear-gradient(45deg, #ff6b6b, #feca57);
+  border: none;
+  color: white;
+  font-weight: 500;
+ 
+}
+
+.q-btn[color="primary"]:hover {
+  background: linear-gradient(45deg, #feca57, #ff6b6b);
+}
+
+/* Lista del carrito con fondo sutil */
+.q-list {
+  background: rgba(22, 22, 22, 0.8);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+/* Items del carrito con animación de entrada */
+.q-item {
+  border-bottom: 1px solid #eee;
+  padding: 1rem 0;
+ 
+}
+
+.q-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+/* Botones de cantidad con colores */
+.q-btn[icon="remove"], .q-btn[icon="add"] {
+  background: #26a69a;
+  color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.q-btn[icon="remove"]:hover, .q-btn[icon="add"]:hover {
+  background: #4db6ac;
+}
+
+/* Sección de totales con fondo destacado */
+.q-mt-md {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.q-mt-md p {
+  margin: 0.5rem 0;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  #app {
+    padding: 1rem;
+  }
+
+  .q-card {
+    margin-bottom: 1rem;
+  }
+}
+</style>
+
+
+<style scoped>
+
+</style>
