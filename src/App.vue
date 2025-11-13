@@ -2,18 +2,20 @@
   <div>
     <div class="q-pa-md">
       <h4>Productos Disponibles</h4>
-      <div class="row q-gutter-md">
-        <q-card v-for="producto in productosDisponibles" :key="producto.id" class="col-12 col-sm-6 col-md-4">
-          <q-card-section>
-            <q-img :src="producto.imagen" style="height: 175px; width: 175px; object-fit: cover;" />
-            <div class="text-h6">{{ producto.nombre }}</div>
-            <div class="text-subtitle2">${{ producto.precio }}</div>
-          </q-card-section>
-          <q-card-actions>
-            <q-btn flat color="primary" @click="agregarAlCarrito(producto)"> + Agregar al carrito</q-btn>
-          </q-card-actions>
-        </q-card>
-      </div>
+      <q-list bordered>
+        <q-item v-for="producto in productosDisponibles" :key="producto.id">
+          <q-item-section avatar>
+            <q-img :src="producto.imagen" style="height: 100px; width: 100px; object-fit: cover;" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">{{ producto.nombre }}</q-item-label>
+            <q-item-label caption>${{ producto.precio }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn flat color="primary" icon="shopping_cart" @click="agregarAlCarrito(producto)"> + </q-btn>
+          </q-item-section>
+        </q-item>
+      </q-list>
     </div>
 
     <div class="q-pa-md">
@@ -34,8 +36,9 @@
       <div class="q-mt-md">
         <p>Total Items: {{ totalItems }}</p>
         <p>Subtotal: ${{ subtotal }}</p>
-        <p>Impuesto (16%): ${{ impuesto }}</p>
+        <p>Impuesto (19%): ${{ impuesto }}</p>
         <p>Total Final: ${{ totalFinal }}</p>
+          <q-btn color="grey-4" text-color="purple" glossy unelevated icon="shopping_cart" label="COMPRAR" />
       </div>
     </div>
   </div>
@@ -48,22 +51,22 @@ const $q = useQuasar()
 
 //array de productos//
 const productosDisponibles = ref([
-    { id: 1, nombre: 'Licuadora', precio: 85.5, imagen: 'https://admin.pallomaro.com/backend/admin/backend/web/archivosDelCliente/items/images/20230929230938-BEBIDAS-LICUADORAS-LICUADORA-VELOCIDAD-VARIABLE-2L-21620230929230938128.png'},
+    { id: 1, nombre: 'Licuadora', precio: 85, imagen: 'https://admin.pallomaro.com/backend/admin/backend/web/archivosDelCliente/items/images/20230929230938-BEBIDAS-LICUADORAS-LICUADORA-VELOCIDAD-VARIABLE-2L-21620230929230938128.png'},
     { id: 2, nombre: 'Microondas', precio: 210, imagen: 'https://images.samsung.com/is/image/samsung/p6pim/co/ms23k3513ak-co/gallery/co-mw3500k-solo-mwo-with-quick-defrost-23l-ms23k3513ak-co-thumb-542064567?$UX_EXT1_PNG$' },
     { id: 3, nombre: 'Batidora', precio: 308, imagen: 'https://pepeganga.vtexassets.com/arquivos/ids/1050301-800-auto?v=638351633673170000&width=800&height=auto&aspect=true' },
-    { id: 4, nombre: 'Horno Giratorio', precio: 415.2, imagen: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS9CQ-mhdDPgs9Tw21a6Ma5vdXzWIIKwIwAg&s' },
+    { id: 4, nombre: 'Horno Giratorio', precio: 415, imagen: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS9CQ-mhdDPgs9Tw21a6Ma5vdXzWIIKwIwAg&s' },
+    
 ])
 
 
 //propiedades computadas requeridas//
 const carrito = ref ([])
-const totalItems = computed(() => carrito.value.reduce((sum, item) => sum + item.cantidad, 0))
-const subtotal = computed(() => carrito.value.reduce ((sum, item) => sum +(item.precio * item.cantidad), 0))
-const impuesto = computed(() => subtotal.value *
-0.16)
-const totalFinal = computed(() => subtotal.value + impuesto.value)
+const totalItems = computed(() => carrito.value.reduce((sum, item) => sum + item.cantidad, 0));
+const subtotal = computed(() => carrito.value.reduce ((sum, item) => sum +(item.precio * item.cantidad), 0));
+const impuesto = computed(() => subtotal.value *0.19);
+const totalFinal = computed(() => subtotal.value + impuesto.value);
 //para cargar el carrito de localstorage//
-const savedCarrito = localStorage.getItem('carrito')
+const savedCarrito = localStorage.getItem('carrito');
 if (savedCarrito){
     carrito.value = JSON.parse(savedCarrito)
 }
@@ -182,20 +185,27 @@ h4 {
 
 /* Lista del carrito con fondo sutil */
 .q-list {
-  background: rgba(22, 22, 22, 0.8);
+  background: #f8f4ea;
   border-radius: 10px;
   padding: 1rem;
 }
 
 /* Items del carrito con animación de entrada */
 .q-item {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #2c2828;
   padding: 1rem 0;
  
 }
 
+
+.q-item__label {
+    line-height: 1.2em !important;
+    max-width: 100%;
+    color: black;
+}
+
 .q-item:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(95, 15, 133, 0.1);
 }
 
 /* Botones de cantidad con colores */
@@ -224,6 +234,12 @@ h4 {
   margin: 0.5rem 0;
   font-weight: 500;
   color: #333;
+}
+
+.q-pa-md{
+ font-size: 20px;
+ background-color: #eee;
+ width: 900px;
 }
 
 /* Responsive para móviles */
